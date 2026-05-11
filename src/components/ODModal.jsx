@@ -41,21 +41,6 @@ export default function ODModal({ isOpen, onClose, onSave, subjectName, date }) 
         />
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
-          <Calendar size={12} style={{ display: 'inline', marginRight: 4 }} /> Date
-        </label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={e => setSelectedDate(e.target.value)}
-          style={{
-            width: '100%', background: 'var(--card)', border: '1px solid var(--border-strong)',
-            borderRadius: 14, padding: '12px 14px', color: 'var(--text-primary)', fontSize: 14,
-            colorScheme: 'dark',
-          }}
-        />
-      </div>
 
       <div style={{ display: 'flex', gap: 10 }}>
         <motion.button whileTap={{ scale: 0.95 }} onClick={onClose}

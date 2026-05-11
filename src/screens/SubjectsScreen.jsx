@@ -6,6 +6,7 @@ import AddSubjectScreen from './AddSubjectScreen';
 import { Plus, Search, X, Trash2, Edit3 } from 'lucide-react';
 import ModalSheet from '../components/ModalSheet';
 import { calcAttendance, getAttendanceColor } from '../utils/attendance';
+import { format } from 'date-fns';
 
 export default function SubjectsScreen() {
   const { subjects, deleteSubject } = useStore();
@@ -191,24 +192,63 @@ function SubjectDetail({ subject, onEdit, onDelete }) {
           </div>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-        {[
-          { l: 'Attended', v: subject.attended, c: 'var(--accent)' },
-          { l: 'Absent', v: subject.absent, c: 'var(--danger)' },
-          { l: 'On Duty', v: subject.od, c: 'var(--blue)' },
-          { l: 'Holiday', v: subject.off, c: 'var(--warning)' },
-          { l: 'Total', v: subject.total, c: 'var(--text-primary)' },
-          { l: 'Target', v: `${subject.target}%`, c: 'var(--text-primary)' },
-        ].map(({ l, v, c }) => (
-          <div key={l} style={{
-            background: 'var(--border)', borderRadius: 14, padding: '14px',
-            border: '1px solid var(--border)',
-          }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: c }}>{v}</div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>{l}</div>
-          </div>
-        ))}
+      </div>
+      
+      <div style={{ marginTop: 24 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Edit3 size={14} color="var(--accent)" /> Attendance History
+        </div>
+        <SubjectHistory subjectId={subject.id} />
       </div>
     </div>
   );
 }
+
+function SubjectHistory({ subjectId }) {
+  const { attendanceLogs } = useStore();
+  const history = Object.values(attendanceLogs)
+    .filter(l => l.subjectId === subjectId)
+    .sort((a, b) => b.date.localeCompare(a.date) || b.period_index - a.period_index);
+
+  if (history.length === 0) {
+    return <div style={{ fontSize: 12, color: 'var(--text-secondary)', padding: '10px', textAlign: 'center' }}>No history found.</div>;
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {history.map(log => {
+        const dateObj = new Date(log.date);
+        const dateStr = format(dateObj, 'MMM d, yyyy');
+        const dayName = format(dateObj, 'EEE');
+        const color = STATUS_COLORS[log.status] || 'var(--text-muted)';
+        return (
+          <div key={log.id} style={{ 
+            display: 'flex', alignItems: 'center', gap: 12, 
+            padding: '10px 14px', background: 'var(--border)', borderRadius: 12,
+            border: '1px solid var(--border)'
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {dayName}, {dateStr}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-secondary)' }}>
+                {log.period_index}{['st','nd','rd'][((log.period_index+90)%100-10)%10-1]||'th'} Period
+              </div>
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color }}>
+              {log.status}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const STATUS_COLORS = {
+  PRESENT: 'var(--accent)',
+  ABSENT: 'var(--danger)',
+  OD: 'var(--blue)',
+  OFF: 'var(--warning)',
+};

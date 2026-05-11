@@ -50,10 +50,26 @@ export default function CalendarScreen() {
 
   const getLogsForDay = (day) => {
     const dateStr = format(day, 'yyyy-MM-dd');
-    return Object.values(attendanceLogs)
-      .filter(l => l.date === dateStr)
-      .map(l => ({ ...l, subject: subjects.find(s => s.id === l.subjectId) }))
-      .sort((a, b) => a.period_index - b.period_index);
+    const dayName = format(day, 'EEE'); // Mon, Tue, etc.
+    const tt = (useStore.getState().timetable[dayName] || []).map((slot, i) => ({
+      ...slot,
+      period_index: i + 1,
+      subject: subjects.find(s => s.id === slot.subjectId),
+    }));
+
+    const logs = Object.values(attendanceLogs).filter(l => l.date === dateStr);
+    
+    // Merge: For each timetable slot, see if a log exists. If not, add a virtual log.
+    const merged = tt.map(slot => {
+      const log = logs.find(l => l.period_index === slot.period_index);
+      return log ? { ...log, subject: subjects.find(s => s.id === log.subjectId) } : { ...slot, status: null, date: dateStr };
+    });
+
+    // Also add any logs that were added manually (period_index > timetable.length)
+    const extraLogs = logs.filter(l => !tt.find(slot => slot.period_index === l.period_index))
+      .map(l => ({ ...l, subject: subjects.find(s => s.id === l.subjectId) }));
+
+    return [...merged, ...extraLogs].sort((a, b) => a.period_index - b.period_index);
   };
 
   const dayLogs = selectedDay ? getLogsForDay(selectedDay) : [];
@@ -161,12 +177,12 @@ export default function CalendarScreen() {
       >
         {dayLogs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-secondary)' }}>
-            No attendance recorded for this day.
+            No classes scheduled or recorded for this day.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {dayLogs.map((log) => (
-              <CalendarLogItem key={log.id} log={log} dateStr={format(selectedDay, 'yyyy-MM-dd')} />
+            {dayLogs.map((log, i) => (
+              <CalendarLogItem key={log.id || `virtual-${i}`} log={log} dateStr={format(selectedDay, 'yyyy-MM-dd')} />
             ))}
           </div>
         )}
@@ -390,7 +406,7 @@ function CalendarLogItem({ log, dateStr }) {
 
   const subject = log.subject;
   const status = log.status;
-  const cfg = STATUS_CONFIG[status];
+  const cfg = status ? STATUS_CONFIG[status] : null;
   
   if (!subject) return null;
 
@@ -469,18 +485,21 @@ function CalendarLogItem({ log, dateStr }) {
                       {label}
                     </motion.button>
                   ))}
-                  <motion.button
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => clearAttendance(dateStr, log.period_index)}
-                    style={{
-                      padding: '8px 10px', borderRadius: 10, fontSize: 11, fontWeight: 700,
-                      background: 'rgba(90,107,104,0.15)', color: 'var(--text-secondary)',
-                      border: '1px solid rgba(90,107,104,0.2)', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', gap: 4,
-                    }}
-                  >
-                    <RotateCcw size={11} /> Remove
                   </motion.button>
+                  {status && (
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => clearAttendance(dateStr, log.period_index)}
+                      style={{
+                        padding: '8px 10px', borderRadius: 10, fontSize: 11, fontWeight: 700,
+                        background: 'rgba(90,107,104,0.15)', color: 'var(--text-secondary)',
+                        border: '1px solid rgba(90,107,104,0.2)', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: 4,
+                      }}
+                    >
+                      <RotateCcw size={11} /> Clear Entry
+                    </motion.button>
+                  )}
                 </div>
                 {log.reason && (
                   <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-secondary)', fontStyle: 'italic' }}>
