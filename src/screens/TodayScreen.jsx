@@ -48,8 +48,8 @@ export default function TodayScreen() {
     clearDayAttendance(today);
   };
 
-  const allMarked = lectures.length > 0 &&
-    lectures.every((_, i) => !!getLogForDate(today, i + 1));
+  const anyMarked = lectures.length > 0 &&
+    lectures.some((_, i) => !!getLogForDate(today, i + 1));
 
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const now      = new Date();
@@ -180,7 +180,7 @@ export default function TodayScreen() {
               ))}
 
               {/* Clear all */}
-              {allMarked && (
+              {anyMarked && (
                 <motion.button
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
