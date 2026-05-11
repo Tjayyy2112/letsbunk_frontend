@@ -29,7 +29,7 @@ const STATUS_COLORS = {
 };
 
 export default function CalendarScreen() {
-  const { attendanceLogs, subjects } = useStore();
+  const { attendanceLogs, subjects, markDayAttendance, clearDayAttendance } = useStore();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [showAddClass, setShowAddClass] = useState(false);
@@ -168,6 +168,49 @@ export default function CalendarScreen() {
             ))}
           </div>
         )}
+
+        {/* Whole Day Controls */}
+        <div style={{ marginTop: 20, padding: '16px', background: 'var(--card-dim)', borderRadius: 16, border: '1px solid var(--border)' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
+            Whole Day Controls
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            {[
+              { s: 'PRESENT', label: 'Present', color: 'var(--accent)',  bg: 'var(--accent-dim)',  icon: '✓' },
+              { s: 'ABSENT',  label: 'Absent',  color: 'var(--danger)',  bg: 'var(--danger-dim)',  icon: '✕' },
+              { s: 'OD',      label: 'OD',      color: 'var(--blue)',    bg: 'var(--blue-dim)',    icon: '⚡' },
+              { s: 'OFF',     label: 'Holiday', color: 'var(--warning)', bg: 'var(--warning-dim)', icon: '☕' },
+            ].map(({ s, label, color, bg, icon }) => (
+              <motion.button
+                key={s}
+                whileTap={{ scale: 0.92 }}
+                onClick={() => markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), s)}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                  padding: '10px 4px', borderRadius: 12, background: bg, border: `1px solid ${color}30`,
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ fontSize: 14, color }}>{icon}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, color }}>{label}</span>
+              </motion.button>
+            ))}
+          </div>
+          {dayLogs.length > 0 && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => clearDayAttendance(format(selectedDay, 'yyyy-MM-dd'))}
+              style={{
+                width: '100%', marginTop: 10, padding: '10px', borderRadius: 12,
+                background: 'rgba(216,92,99,0.1)', color: 'var(--danger)',
+                border: '1px solid rgba(216,92,99,0.2)', fontSize: 12, fontWeight: 700,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
+              }}
+            >
+              <RotateCcw size={14} /> Clear Whole Day
+            </motion.button>
+          )}
+        </div>
 
         {!showAddClass ? (
           <motion.button

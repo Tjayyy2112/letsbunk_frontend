@@ -42,6 +42,8 @@ export const getLogs        = (params={}) => api.get('/attendance', { params }).
 export const markAttendance = (data)      => api.post('/attendance', data).then(r => r.data);
 export const clearAttendance= (date, periodIndex) =>
   api.delete('/attendance', { params: { date, periodIndex } }).then(r => r.data);
+export const markDayAttendance = (data)      => api.post('/attendance/day', data).then(r => r.data);
+export const clearDayAttendance = (date)      => api.delete('/attendance/day', { params: { date } }).then(r => r.data);
 export const resetSemester  = ()          => api.delete('/attendance/reset').then(r => r.data);
 export const clearAllData   = ()          => api.delete('/attendance/clear-all').then(r => r.data);
 

@@ -23,7 +23,7 @@ const MARK_ALL_OPTIONS = [
 ];
 
 export default function TodayScreen() {
-  const { subjects, settings, streak, getTodayLectures, markAttendance, clearAttendance, getLogForDate, user } = useStore();
+  const { subjects, settings, streak, getTodayLectures, markAttendance, clearAttendance, markDayAttendance, clearDayAttendance, getLogForDate, user } = useStore();
   const lectures   = getTodayLectures();
   const today      = format(new Date(), 'yyyy-MM-dd');
 
@@ -40,15 +40,12 @@ export default function TodayScreen() {
 
   /* ── mark-all handler ── */
   const handleMarkAll = (option) => {
-    // For OD we just skip the reason modal and mark with empty reason
-    lectures.forEach(({ subject }, i) => {
-      markAttendance(subject.id, today, option.status, '', i + 1);
-    });
+    markDayAttendance(today, option.status);
     setConfirmAll(null);
   };
 
   const handleClearAll = () => {
-    lectures.forEach((_, i) => clearAttendance(today, i + 1));
+    clearDayAttendance(today);
   };
 
   const allMarked = lectures.length > 0 &&

@@ -165,6 +165,32 @@ export const useStore = create((set, get) => ({
     }
   },
 
+  markDayAttendance: async (date, status) => {
+    try {
+      await api.markDayAttendance({ date, status });
+      // Refetch everything as many subjects/logs change
+      const [subjects, logs] = await Promise.all([api.getSubjects(), api.getLogs()]);
+      const logMap = {};
+      logs.forEach(l => { logMap[`${l.date}-${l.period_index}`] = l; });
+      set({ subjects, attendanceLogs: logMap });
+    } catch (err) {
+      console.error('Mark day attendance failed:', err);
+    }
+  },
+
+  clearDayAttendance: async (date) => {
+    try {
+      await api.clearDayAttendance(date);
+      // Refetch everything
+      const [subjects, logs] = await Promise.all([api.getSubjects(), api.getLogs()]);
+      const logMap = {};
+      logs.forEach(l => { logMap[`${l.date}-${l.period_index}`] = l; });
+      set({ subjects, attendanceLogs: logMap });
+    } catch (err) {
+      console.error('Clear day attendance failed:', err);
+    }
+  },
+
   // ── Timetable ─────────────────────────────────────
   addTimetableEntry: async (day, data) => {
     const entry = await api.createEntry({ ...data, day });
