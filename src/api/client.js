@@ -1,9 +1,34 @@
 import axios from 'axios';
+import useStore from '../store/useStore';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 8000,
 });
+
+// Add a request interceptor to inject the token
+api.interceptors.request.use((config) => {
+  const token = useStore.getState().token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle 401 Unauthorized globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      useStore.getState().logout();
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ── Auth ──────────────────────────────────────────────
+export const loginUser      = (data) => api.post('/auth/login', data).then(r => r.data);
+export const registerUser   = (data) => api.post('/auth/register', data).then(r => r.data);
 
 // ── Subjects ──────────────────────────────────────────
 export const getSubjects    = ()        => api.get('/subjects').then(r => r.data);

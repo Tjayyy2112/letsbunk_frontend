@@ -3,6 +3,10 @@ import * as api from '../api/client';
 import { format } from 'date-fns';
 
 export const useStore = create((set, get) => ({
+  // ── Auth State ─────────────────────────────────────
+  token:          localStorage.getItem('token') || null,
+  user:           JSON.parse(localStorage.getItem('user')) || null,
+
   // ── State ──────────────────────────────────────────
   activeTab:      'today',
   setActiveTab:   (tab) => set({ activeTab: tab }),
@@ -20,8 +24,54 @@ export const useStore = create((set, get) => ({
   error:          null,
   streak:         0,
 
+  // ── Auth Methods ───────────────────────────────────
+  login: async (email, password) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await api.loginUser({ email, password });
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      set({ token: data.token, user: data.user, error: null });
+      await get().bootstrap();
+    } catch (err) {
+      set({ error: err.response?.data?.error || err.message, loading: false });
+      throw err;
+    }
+  },
+
+  register: async (email, password, name) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await api.registerUser({ email, password, name });
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      set({ token: data.token, user: data.user, error: null });
+      await get().bootstrap();
+    } catch (err) {
+      set({ error: err.response?.data?.error || err.message, loading: false });
+      throw err;
+    }
+  },
+
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    set({
+      token: null,
+      user: null,
+      subjects: [],
+      timetable: { Mon:[], Tue:[], Wed:[], Thu:[], Fri:[], Sat:[], Sun:[] },
+      attendanceLogs: {},
+      settings: { target_attendance: 75, notifications: true },
+    });
+  },
+
   // ── Bootstrap: load everything on app start ────────
   bootstrap: async () => {
+    if (!get().token) {
+      set({ loading: false });
+      return;
+    }
     try {
       const [subjects, timetable, logs, settings] = await Promise.all([
         api.getSubjects(),

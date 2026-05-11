@@ -7,6 +7,7 @@ import TimetableScreen  from './screens/TimetableScreen';
 import CalendarScreen   from './screens/CalendarScreen';
 import SubjectsScreen   from './screens/SubjectsScreen';
 import SettingsScreen   from './screens/SettingsScreen';
+import AuthScreen       from './screens/AuthScreen';
 
 const SCREENS = {
   today:     TodayScreen,
@@ -17,7 +18,7 @@ const SCREENS = {
 };
 
 export default function App() {
-  const { activeTab, loading, error, bootstrap, theme } = useStore();
+  const { activeTab, loading, error, bootstrap, theme, token } = useStore();
   const Screen = SCREENS[activeTab] || TodayScreen;
 
   useEffect(() => { 
@@ -43,6 +44,10 @@ export default function App() {
       <div style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Loading Let'sBunk…</div>
     </div>
   );
+
+  if (!token) {
+    return <AuthScreen />;
+  }
 
   if (error) return (
     <div style={{

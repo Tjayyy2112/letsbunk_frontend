@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import { Target, Bell, Download, Trash2, Info, Moon, RefreshCcw, Lock, ChevronRight } from 'lucide-react';
+import { Target, Bell, Download, Trash2, Info, Moon, RefreshCcw, Lock, ChevronRight, LogOut } from 'lucide-react';
 
 function SettingsRow({ icon: Icon, label, description, right, onClick, color = 'var(--accent)' }) {
   return (
@@ -71,7 +71,7 @@ function Toggle({ value, onChange }) {
 }
 
 export default function SettingsScreen() {
-  const { settings, updateSettings, subjects, theme, setTheme, clearAllData } = useStore();
+  const { settings, updateSettings, subjects, theme, setTheme, clearAllData, logout, user } = useStore();
   const [showReset, setShowReset] = useState(false);
   const [showClearAll, setShowClearAll] = useState(false);
 
@@ -141,6 +141,10 @@ export default function SettingsScreen() {
 
         <SettingsSection title="About">
           <SettingsRow icon={Info} label="Let'sBunk" description="Track smart. Bunk smarter. v1.0.0" color="var(--accent)" />
+        </SettingsSection>
+
+        <SettingsSection title="Account">
+          <SettingsRow icon={LogOut} label="Log Out" description={user?.email || "Disconnect from your account"} onClick={logout} color="var(--danger)" />
         </SettingsSection>
 
         {showReset && (
