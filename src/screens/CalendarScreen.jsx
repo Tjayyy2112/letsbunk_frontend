@@ -260,7 +260,7 @@ export default function CalendarScreen() {
       <AbsentModal
         isOpen={showAbsentModal}
         onClose={() => setShowAbsentModal(false)}
-        onSave={(reason) => { markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), 'ABSENT', false, reason); setShowAbsentModal(false); }}
+        onSave={(reason) => { markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), 'ABSENT', reason); setShowAbsentModal(false); }}
         subjectName="Whole Day"
         date={selectedDay ? format(selectedDay, 'yyyy-MM-dd') : ''}
       />
@@ -268,7 +268,7 @@ export default function CalendarScreen() {
       <ODModal
         isOpen={showODModal}
         onClose={() => setShowODModal(false)}
-        onSave={(reason) => { markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), 'OD', false, reason); setShowODModal(false); }}
+        onSave={(reason) => { markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), 'OD', reason); setShowODModal(false); }}
         subjectName="Whole Day"
         date={selectedDay ? format(selectedDay, 'yyyy-MM-dd') : ''}
       />

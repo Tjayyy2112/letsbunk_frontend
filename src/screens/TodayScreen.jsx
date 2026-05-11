@@ -44,7 +44,7 @@ export default function TodayScreen() {
 
   /* ── mark-all handler ── */
   const handleMarkAll = (option, reason = '') => {
-    markDayAttendance(today, option.status, true, reason);
+    markDayAttendance(today, option.status, reason);
     setConfirmAll(null);
   };
 
