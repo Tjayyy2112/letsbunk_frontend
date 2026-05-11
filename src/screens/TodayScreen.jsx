@@ -7,6 +7,8 @@ import { calcAttendance, canBunk } from '../utils/attendance';
 import { format } from 'date-fns';
 import { Flame, Check, X, Zap, Coffee } from 'lucide-react';
 import ModalSheet from '../components/ModalSheet';
+import AbsentModal from '../components/AbsentModal';
+import ODModal from '../components/ODModal';
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -28,6 +30,8 @@ export default function TodayScreen() {
   const today      = format(new Date(), 'yyyy-MM-dd');
 
   const [confirmAll, setConfirmAll] = useState(null); // holds the chosen option while confirming
+  const [showAbsentModal, setShowAbsentModal] = useState(false);
+  const [showODModal, setShowODModal] = useState(false);
 
   /* ── overall stats ── */
   const totalAttended = subjects.reduce((s, sub) => s + sub.attended + sub.od, 0);
@@ -39,8 +43,8 @@ export default function TodayScreen() {
   );
 
   /* ── mark-all handler ── */
-  const handleMarkAll = (option) => {
-    markDayAttendance(today, option.status, true);
+  const handleMarkAll = (option, reason = '') => {
+    markDayAttendance(today, option.status, true, reason);
     setConfirmAll(null);
   };
 
@@ -228,7 +232,11 @@ export default function TodayScreen() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => handleMarkAll(confirmAll)}
+                  onClick={() => {
+                    if (confirmAll.status === 'ABSENT') { setShowAbsentModal(true); setConfirmAll(null); }
+                    else if (confirmAll.status === 'OD') { setShowODModal(true); setConfirmAll(null); }
+                    else handleMarkAll(confirmAll);
+                  }}
                   style={{
                     width: '100%', padding: '14px', borderRadius: 14,
                     background: confirmAll.color,
@@ -256,6 +264,22 @@ export default function TodayScreen() {
             </div>
           )}
         </ModalSheet>
+
+        <AbsentModal
+          isOpen={showAbsentModal}
+          onClose={() => setShowAbsentModal(false)}
+          onSave={(reason) => { handleMarkAll({ status: 'ABSENT' }, reason); setShowAbsentModal(false); }}
+          subjectName="Whole Day"
+          date={today}
+        />
+
+        <ODModal
+          isOpen={showODModal}
+          onClose={() => setShowODModal(false)}
+          onSave={(reason) => { handleMarkAll({ status: 'OD' }, reason); setShowODModal(false); }}
+          subjectName="Whole Day"
+          date={today}
+        />
 
         {/* ── Lecture Cards ── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>

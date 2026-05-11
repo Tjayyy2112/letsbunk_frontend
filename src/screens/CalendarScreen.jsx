@@ -33,6 +33,8 @@ export default function CalendarScreen() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState(null);
   const [showAddClass, setShowAddClass] = useState(false);
+  const [showAbsentModal, setShowAbsentModal] = useState(false);
+  const [showODModal, setShowODModal] = useState(false);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -184,7 +186,11 @@ export default function CalendarScreen() {
               <motion.button
                 key={s}
                 whileTap={{ scale: 0.92 }}
-                onClick={() => markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), s)}
+                onClick={() => {
+                  if (s === 'ABSENT') setShowAbsentModal(true);
+                  else if (s === 'OD') setShowODModal(true);
+                  else markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), s);
+                }}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                   padding: '10px 4px', borderRadius: 12, background: bg, border: `1px solid ${color}30`,
@@ -234,6 +240,22 @@ export default function CalendarScreen() {
           />
         )}
       </ModalSheet>
+
+      <AbsentModal
+        isOpen={showAbsentModal}
+        onClose={() => setShowAbsentModal(false)}
+        onSave={(reason) => { markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), 'ABSENT', false, reason); setShowAbsentModal(false); }}
+        subjectName="Whole Day"
+        date={selectedDay ? format(selectedDay, 'yyyy-MM-dd') : ''}
+      />
+
+      <ODModal
+        isOpen={showODModal}
+        onClose={() => setShowODModal(false)}
+        onSave={(reason) => { markDayAttendance(format(selectedDay, 'yyyy-MM-dd'), 'OD', false, reason); setShowODModal(false); }}
+        subjectName="Whole Day"
+        date={selectedDay ? format(selectedDay, 'yyyy-MM-dd') : ''}
+      />
     </div>
   );
 }

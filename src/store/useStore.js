@@ -165,9 +165,9 @@ export const useStore = create((set, get) => ({
     }
   },
 
-  markDayAttendance: async (date, status, fillFromTimetable = false) => {
+  markDayAttendance: async (date, status, fillFromTimetable = false, reason = '') => {
     try {
-      await api.markDayAttendance({ date, status, fillFromTimetable });
+      await api.markDayAttendance({ date, status, fillFromTimetable, reason });
       // Refetch everything as many subjects/logs change
       const [subjects, logs] = await Promise.all([api.getSubjects(), api.getLogs()]);
       const logMap = {};
