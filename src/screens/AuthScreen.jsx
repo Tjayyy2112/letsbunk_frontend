@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, LogIn, UserPlus } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
@@ -21,80 +21,190 @@ export default function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-background to-secondary">
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 24,
+      background: 'var(--bg)',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Background decoration */}
+      <div style={{
+        position: 'absolute',
+        top: -150,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 400,
+        height: 400,
+        background: 'radial-gradient(circle, rgba(142,216,204,0.06) 0%, transparent 70%)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-card/50 backdrop-blur-xl border border-border/50 rounded-3xl p-8 shadow-2xl"
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        style={{
+          width: '100%',
+          maxWidth: 400,
+          background: 'var(--card)',
+          borderRadius: 32,
+          padding: 32,
+          border: '1px solid var(--border)',
+          boxShadow: '0 24px 48px -12px rgba(0,0,0,0.5)',
+          position: 'relative',
+          zIndex: 1
+        }}
       >
-        <div className="flex justify-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
-            <BookOpen size={32} />
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: 24,
+            background: 'var(--accent-dim)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid rgba(142,216,204,0.1)'
+          }}>
+            <BookOpen size={36} color="var(--accent)" />
           </div>
         </div>
         
-        <h1 className="text-3xl font-bold text-center text-foreground mb-2">
+        <h1 style={{
+          fontSize: 28, fontWeight: 800, textAlign: 'center',
+          color: 'var(--text-primary)', marginBottom: 8, letterSpacing: '-0.5px'
+        }}>
           Let'sBunk
         </h1>
-        <p className="text-center text-muted-foreground mb-8">
+        <p style={{
+          textAlign: 'center', color: 'var(--text-secondary)',
+          fontSize: 14, marginBottom: 32, fontWeight: 500
+        }}>
           {isLogin ? 'Welcome back, ready to bunk?' : 'Create your account to start tracking.'}
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-background/50 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="John Doe"
-              />
-            </div>
-          )}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <AnimatePresence mode="popLayout">
+            {!isLogin && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                animate={{ opacity: 1, height: 'auto', overflow: 'visible' }}
+                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                transition={{ duration: 0.2 }}
+              >
+                <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Name</div>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  style={{
+                    width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                    borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
+                    fontSize: 15, outline: 'none', transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Email</label>
+            <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Email</div>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-background/50 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="you@example.com"
+              style={{
+                width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
+                fontSize: 15, outline: 'none', transition: 'border-color 0.2s',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Password</label>
+            <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Password</div>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-background/50 border border-border/50 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="••••••••"
+              style={{
+                width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
+                fontSize: 15, outline: 'none', transition: 'border-color 0.2s',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
             />
           </div>
 
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm text-center">
-              {error}
-            </div>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                style={{
+                  padding: 12, background: 'var(--danger-dim)', border: '1px solid rgba(216,92,99,0.2)',
+                  color: 'var(--danger)', borderRadius: 14, fontSize: 13, fontWeight: 600, textAlign: 'center'
+                }}
+              >
+                {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <button
+          <motion.button
+            whileTap={{ scale: 0.96 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl px-4 py-3 transition-colors flex items-center justify-center gap-2"
+            style={{
+              width: '100%', background: 'var(--accent)', color: '#07110F',
+              fontWeight: 800, borderRadius: 16, padding: '16px', fontSize: 16,
+              border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              marginTop: 8, opacity: loading ? 0.7 : 1
+            }}
           >
-            {loading ? 'Processing...' : isLogin ? <><LogIn size={20}/> Login</> : <><UserPlus size={20}/> Sign Up</>}
-          </button>
+            {loading ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                style={{
+                  width: 20, height: 20, borderRadius: '50%',
+                  border: '2px solid rgba(7,17,15,0.2)', borderTop: '2px solid #07110F'
+                }}
+              />
+            ) : isLogin ? (
+              <><LogIn size={20} strokeWidth={2.5} /> Login</>
+            ) : (
+              <><UserPlus size={20} strokeWidth={2.5} /> Sign Up</>
+            )}
+          </motion.button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div style={{ marginTop: 24, textAlign: 'center' }}>
           <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-primary hover:underline text-sm font-medium"
+            type="button"
+            onClick={() => { setIsLogin(!isLogin); useStore.setState({ error: null }); }}
+            style={{
+              background: 'transparent', border: 'none', color: 'var(--accent)',
+              fontSize: 14, fontWeight: 600, cursor: 'pointer', padding: '8px 16px',
+              borderRadius: 12
+            }}
+            onMouseOver={(e) => e.target.style.background = 'var(--accent-dim)'}
+            onMouseOut={(e) => e.target.style.background = 'transparent'}
           >
             {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
           </button>
