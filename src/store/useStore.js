@@ -165,9 +165,9 @@ export const useStore = create((set, get) => ({
     }
   },
 
-  markDayAttendance: async (date, status) => {
+  markDayAttendance: async (date, status, fillFromTimetable = false) => {
     try {
-      await api.markDayAttendance({ date, status });
+      await api.markDayAttendance({ date, status, fillFromTimetable });
       // Refetch everything as many subjects/logs change
       const [subjects, logs] = await Promise.all([api.getSubjects(), api.getLogs()]);
       const logMap = {};
@@ -175,6 +175,9 @@ export const useStore = create((set, get) => ({
       set({ subjects, attendanceLogs: logMap });
     } catch (err) {
       console.error('Mark day attendance failed:', err);
+      if (err.response?.status === 404) {
+        alert(err.response.data.error || 'No classes found for this date.');
+      }
     }
   },
 
