@@ -235,8 +235,13 @@ function SubjectHistory({ subjectId }) {
                 {log.period_index}{['st','nd','rd'][((log.period_index+90)%100-10)%10-1]||'th'} Period
               </div>
             </div>
-            <div style={{ fontSize: 11, fontWeight: 700, color }}>
-              {log.status}
+            <div style={{ fontSize: 11, fontWeight: 700, color, textAlign: 'right' }}>
+              {log.status === 'ABSENT' && log.reason?.startsWith('[Medical]') ? 'Medical Leave' : log.status}
+              {log.reason && !log.reason.startsWith('[Medical]') && (
+                <div style={{ fontSize: 9, fontWeight: 400, color: 'var(--text-secondary)', marginTop: 2 }}>
+                  {log.reason}
+                </div>
+              )}
             </div>
           </div>
         );
