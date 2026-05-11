@@ -23,7 +23,7 @@ const MARK_ALL_OPTIONS = [
 ];
 
 export default function TodayScreen() {
-  const { subjects, settings, streak, getTodayLectures, markAttendance, clearAttendance, getLogForDate } = useStore();
+  const { subjects, settings, streak, getTodayLectures, markAttendance, clearAttendance, getLogForDate, user } = useStore();
   const lectures   = getTodayLectures();
   const today      = format(new Date(), 'yyyy-MM-dd');
 
@@ -68,7 +68,7 @@ export default function TodayScreen() {
               {dayNames[now.getDay()]}, {format(now, 'MMM d')}
             </div>
             <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>
-              {getGreeting()} 👋
+              {getGreeting()}, {user?.name?.split(' ')[0] || 'there'} 👋
             </h1>
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 2 }}>
               Track smart. Bunk smarter.

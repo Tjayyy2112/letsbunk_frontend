@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, LogIn, UserPlus } from 'lucide-react';
+import { BookOpen, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export default function AuthScreen() {
@@ -8,6 +8,7 @@ export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const { login, register, loading, error } = useStore();
 
@@ -132,21 +133,34 @@ export default function AuthScreen() {
 
           <div>
             <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Password</div>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              style={{
-                width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
-                borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
-                fontSize: 15, outline: 'none', transition: 'border-color 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
-              onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{
+                  width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                  borderRadius: 16, padding: '14px 44px 14px 16px', color: 'var(--text-primary)',
+                  fontSize: 15, outline: 'none', transition: 'border-color 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', color: 'var(--text-secondary)',
+                  cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <AnimatePresence>
