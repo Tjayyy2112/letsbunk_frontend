@@ -192,7 +192,6 @@ function SubjectDetail({ subject, onEdit, onDelete }) {
           </div>
         </div>
       </div>
-      </div>
       
       <div style={{ marginTop: 24 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>

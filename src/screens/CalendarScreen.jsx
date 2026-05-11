@@ -485,7 +485,6 @@ function CalendarLogItem({ log, dateStr }) {
                       {label}
                     </motion.button>
                   ))}
-                  </motion.button>
                   {status && (
                     <motion.button
                       whileTap={{ scale: 0.9 }}
