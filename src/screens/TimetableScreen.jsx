@@ -51,7 +51,7 @@ export default function TimetableScreen() {
   const [activeDayIdx, setActiveDayIdx] = useState(DAYS.indexOf(initDay));
   const [showAdd, setShowAdd] = useState(false);
   const [editEntry, setEditEntry] = useState(null);
-  const [form, setForm] = useState({ subjectId: '', time: '', room: '', faculty: '' });
+  const [form, setForm] = useState({ subjectId: '', time: '', room: '' });
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const activeDay = DAYS[activeDayIdx];
@@ -74,13 +74,13 @@ export default function TimetableScreen() {
       nextTime24 = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
     }
     
-    setForm({ subjectId: subjects[0]?.id || '', time: nextTime24, room: '', faculty: '' });
+    setForm({ subjectId: subjects[0]?.id || '', time: nextTime24, room: '' });
     setEditEntry(null);
     setShowAdd(true);
   };
 
   const openEdit = (entry) => {
-    setForm({ subjectId: entry.subjectId, time: parseTimeTo24h(entry.time), room: entry.room, faculty: entry.faculty });
+    setForm({ subjectId: entry.subjectId, time: parseTimeTo24h(entry.time), room: entry.room });
     setEditEntry(entry);
     setShowAdd(true);
   };
@@ -259,7 +259,7 @@ export default function TimetableScreen() {
                                 {[
                                   { Icon: Clock,  val: formatTimeRange(entry.time) },
                                   { Icon: MapPin, val: entry.room || 'TBD' },
-                                  { Icon: User,   val: entry.faculty },
+                                  { Icon: User,   val: subject.faculty || 'No faculty' },
                                 ].map(({ Icon, val }) => (
                                   <span key={val} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--text-secondary)' }}>
                                     <Icon size={11} /> {val}
@@ -317,7 +317,7 @@ export default function TimetableScreen() {
               value={form.subjectId}
               onChange={e => {
                 const sub = subjects.find(s => s.id === e.target.value);
-                setForm(f => ({ ...f, subjectId: e.target.value, faculty: sub?.faculty || f.faculty }));
+                setForm(f => ({ ...f, subjectId: e.target.value }));
               }}
               style={{
                 width: '100%', background: 'var(--card)',
@@ -336,7 +336,6 @@ export default function TimetableScreen() {
             { key: 'time',    label: 'Start Time',    placeholder: '09:00', type: 'time' },
             { key: '_period', label: 'Period', value: editEntry ? `${getOrdinal(sortedEntries.findIndex(e => e.id === editEntry.id) + 1)} Period (Auto)` : `${getOrdinal(sortedEntries.length + 1)} Period (Auto)`, readOnly: true },
             { key: 'room',    label: 'Room',    placeholder: 'A101', type: 'text'    },
-            { key: 'faculty', label: 'Faculty', placeholder: 'Dr. Name', type: 'text'},
           ].map(({ key, label, placeholder, type, value, readOnly }) => (
             <div key={key}>
               <label style={{ fontSize: 12, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>{label}</label>
