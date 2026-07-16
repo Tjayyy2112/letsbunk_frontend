@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useStore } from './store/useStore';
 import BottomNav from './components/BottomNav';
@@ -20,17 +20,25 @@ const SCREENS = {
 export default function App() {
   const { activeTab, loading, error, bootstrap, theme, token } = useStore();
   const Screen = SCREENS[activeTab] || TodayScreen;
+  const [showSpinUpNotice, setShowSpinUpNotice] = useState(false);
 
   useEffect(() => { 
     bootstrap(); 
     document.documentElement.setAttribute('data-theme', theme);
+    
+    const timer = setTimeout(() => {
+      setShowSpinUpNotice(true);
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   if (loading) return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg)', gap: 16,
+      background: 'var(--bg)', gap: 16, padding: 24,
+      textAlign: 'center'
     }}>
       <motion.div
         animate={{ rotate: 360 }}
@@ -42,6 +50,15 @@ export default function App() {
         }}
       />
       <div style={{ color: 'var(--text-secondary)', fontSize: 14 }}>Loading Let'sBunk…</div>
+      {showSpinUpNotice && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8, maxWidth: 280, lineHeight: 1.5 }}
+        >
+          Waking up the server... Please wait, this can take up to a minute on Render's free tier.
+        </motion.div>
+      )}
     </div>
   );
 

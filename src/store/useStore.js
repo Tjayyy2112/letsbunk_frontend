@@ -134,14 +134,23 @@ export const useStore = create((set, get) => ({
         if (oldSubject) {
           newSubjects = newSubjects.map(sub => sub.id === oldSubject.id ? oldSubject : sub);
         }
-        return { subjects: newSubjects };
-      });
 
-      // Refetch logs to ensure proper ordering if we shifted things
-      const logs = await api.getLogs();
-      const logMap = {};
-      logs.forEach(l => { logMap[`${l.date}-${l.period_index}`] = l; });
-      set({ attendanceLogs: logMap });
+        const updatedLogs = { ...s.attendanceLogs };
+        if (isNewClass) {
+          const logsOnDate = Object.values(updatedLogs).filter(l => l.date === date);
+          logsOnDate.sort((a, b) => b.period_index - a.period_index);
+          logsOnDate.forEach(l => {
+            if (l.period_index >= periodIndex) {
+              delete updatedLogs[`${date}-${l.period_index}`];
+              l.period_index += 1;
+              updatedLogs[`${date}-${l.period_index}`] = l;
+            }
+          });
+        }
+        updatedLogs[`${date}-${periodIndex}`] = log;
+
+        return { subjects: newSubjects, attendanceLogs: updatedLogs };
+      });
     } catch (err) {
       console.error('Mark attendance failed:', err);
     }
@@ -151,15 +160,23 @@ export const useStore = create((set, get) => ({
     try {
       const { subject } = await api.clearAttendance(date, periodIndex);
       
-      set(s => ({
-        subjects: s.subjects.map(sub => sub.id === subject.id ? subject : sub),
-      }));
+      set(s => {
+        const updatedLogs = { ...s.attendanceLogs };
+        delete updatedLogs[`${date}-${periodIndex}`];
 
-      // Refetch logs to ensure proper ordering after shifting down
-      const logs = await api.getLogs();
-      const logMap = {};
-      logs.forEach(l => { logMap[`${l.date}-${l.period_index}`] = l; });
-      set({ attendanceLogs: logMap });
+        const logsOnDate = Object.values(updatedLogs).filter(l => l.date === date);
+        logsOnDate.sort((a, b) => a.period_index - b.period_index);
+        logsOnDate.forEach(l => {
+          if (l.period_index > periodIndex) {
+            delete updatedLogs[`${date}-${l.period_index}`];
+            l.period_index -= 1;
+            updatedLogs[`${date}-${l.period_index}`] = l;
+          }
+        });
+
+        const newSubjects = s.subjects.map(sub => sub.id === subject.id ? subject : sub);
+        return { subjects: newSubjects, attendanceLogs: updatedLogs };
+      });
     } catch (err) {
       console.error('Clear attendance failed:', err);
     }

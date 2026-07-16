@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 8000,
+  timeout: 60000,
 });
 
 // Add a request interceptor to inject the token
