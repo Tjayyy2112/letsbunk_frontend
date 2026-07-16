@@ -15,6 +15,7 @@ export default function AuthScreen() {
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { login, register, sendOTP, resetPassword, loading, error } = useStore();
 
@@ -32,11 +33,18 @@ export default function AuthScreen() {
       if (!otpSent) {
         // Step 1: Send OTP
         try {
+          setIsSubmitting(true);
           await sendOTP(email);
+          // Clear any stale password fields before moving to step 2
+          setNewPassword('');
+          setConfirmPassword('');
+          setOtp('');
           setOtpSent(true);
           setResendCooldown(60);
         } catch (err) {
           // Handled in store
+        } finally {
+          setIsSubmitting(false);
         }
       } else {
         // Step 2: Reset Password
@@ -45,6 +53,7 @@ export default function AuthScreen() {
           return;
         }
         try {
+          setIsSubmitting(true);
           await resetPassword(email, otp, newPassword);
           alert("Password reset successful! You can now log in.");
           setIsForgot(false);
@@ -56,6 +65,8 @@ export default function AuthScreen() {
           setOtp('');
         } catch (err) {
           // Handled in store
+        } finally {
+          setIsSubmitting(false);
         }
       }
     } else if (isLogin) {
@@ -140,8 +151,8 @@ export default function AuthScreen() {
         }}>
           {isForgot 
             ? otpSent
-              ? 'Enter the 6-digit code sent to your email and your new password.'
-              : 'Enter your email to receive a password reset code.'
+              ? 'Enter the 6-digit code sent to your email and your new password (check your spam folder).'
+              : 'Enter your email to receive a password reset code (check your spam folder).'
             : isLogin 
               ? 'Welcome back, ready to bunk?' 
               : 'Create your account to start tracking.'}
@@ -242,7 +253,7 @@ export default function AuthScreen() {
           {isForgot && otpSent && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Verification Code (OTP)</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Verification Code (OTP) (check your spam folder)</span>
                 <button
                   type="button"
                   onClick={handleResendOTP}
@@ -337,16 +348,16 @@ export default function AuthScreen() {
           <motion.button
             whileTap={{ scale: 0.96 }}
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             style={{
               width: '100%', background: 'var(--accent)', color: '#07110F',
               fontWeight: 800, borderRadius: 16, padding: '16px', fontSize: 16,
-              border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+              border: 'none', cursor: isSubmitting ? 'not-allowed' : 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              marginTop: 8, opacity: loading ? 0.7 : 1
+              marginTop: 8, opacity: isSubmitting ? 0.7 : 1
             }}
           >
-            {loading ? (
+            {isSubmitting ? (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
