@@ -18,12 +18,20 @@ const SCREENS = {
 };
 
 export default function App() {
-  const { activeTab, loading, error, bootstrap, theme, token } = useStore();
+  const { activeTab, error, bootstrap, theme, token } = useStore();
   const Screen = SCREENS[activeTab] || TodayScreen;
   const [showSpinUpNotice, setShowSpinUpNotice] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => { 
-    bootstrap(); 
+    const init = async () => {
+      try {
+        await bootstrap();
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+    init();
     document.documentElement.setAttribute('data-theme', theme);
     
     const timer = setTimeout(() => {
@@ -33,7 +41,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (loading) return (
+  if (isInitializing) return (
     <div style={{
       height: '100%', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
@@ -81,7 +89,7 @@ export default function App() {
         background: 'var(--card)', padding: '8px 14px', borderRadius: 10 }}>
         {error}
       </div>
-      <motion.button whileTap={{ scale: 0.95 }} onClick={() => { useStore.setState({ loading: true, error: null }); bootstrap(); }}
+      <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setIsInitializing(true); useStore.setState({ error: null }); bootstrap().finally(() => setIsInitializing(false)); }}
         style={{ padding: '12px 24px', borderRadius: 14, background: 'var(--accent)', color: '#07110F', fontWeight: 700, border: 'none', cursor: 'pointer', marginTop: 8 }}>
         Retry
       </motion.button>

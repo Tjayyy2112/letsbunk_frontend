@@ -54,25 +54,21 @@ export const useStore = create((set, get) => ({
   },
 
   sendOTP: async (email) => {
-    set({ loading: true, error: null });
+    set({ error: null });
     try {
-      const res = await api.sendOTP({ email });
-      set({ loading: false, error: null });
-      return res;
+      return await api.sendOTP({ email });
     } catch (err) {
-      set({ error: err.response?.data?.error || err.message, loading: false });
+      set({ error: err.response?.data?.error || err.message });
       throw err;
     }
   },
 
   resetPassword: async (email, otp, newPassword) => {
-    set({ loading: true, error: null });
+    set({ error: null });
     try {
-      const res = await api.resetPassword({ email, otp, newPassword });
-      set({ loading: false, error: null });
-      return res;
+      return await api.resetPassword({ email, otp, newPassword });
     } catch (err) {
-      set({ error: err.response?.data?.error || err.message, loading: false });
+      set({ error: err.response?.data?.error || err.message });
       throw err;
     }
   },
