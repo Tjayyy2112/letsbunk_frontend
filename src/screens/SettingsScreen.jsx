@@ -76,8 +76,7 @@ export default function SettingsScreen() {
   const [showReset, setShowReset] = useState(false);
   const [showClearAll, setShowClearAll] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
-  const [showChangeRecoveryKey, setShowChangeRecoveryKey] = useState(false);
-
+ 
   // Form states for Change Password
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -85,16 +84,9 @@ export default function SettingsScreen() {
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
-
-  // Form states for Change Recovery Key
-  const [rkCurrentPassword, setRkCurrentPassword] = useState('');
-  const [newRecoveryKey, setNewRecoveryKey] = useState('');
-  const [rkError, setRkError] = useState('');
-  const [rkSuccess, setRkSuccess] = useState('');
-  const [rkLoading, setRkLoading] = useState(false);
-
-  const { changePassword, changeRecoveryKey } = useStore();
-
+ 
+  const { changePassword } = useStore();
+ 
   const handleChangePassword = async (e) => {
     e.preventDefault();
     setPwError('');
@@ -114,23 +106,6 @@ export default function SettingsScreen() {
       setPwError(err.message || 'Failed to update password');
     } finally {
       setPwLoading(false);
-    }
-  };
-
-  const handleChangeRecoveryKey = async (e) => {
-    e.preventDefault();
-    setRkError('');
-    setRkSuccess('');
-    setRkLoading(true);
-    try {
-      await changeRecoveryKey(rkCurrentPassword, newRecoveryKey);
-      setRkSuccess('Recovery key updated successfully!');
-      setRkCurrentPassword('');
-      setNewRecoveryKey('');
-    } catch (err) {
-      setRkError(err.message || 'Failed to update recovery key');
-    } finally {
-      setRkLoading(false);
     }
   };
 
@@ -204,7 +179,6 @@ export default function SettingsScreen() {
 
         <SettingsSection title="Account">
           <SettingsRow icon={Lock} label="Change Password" description="Update your account password" onClick={() => setShowChangePassword(true)} color="var(--accent)" />
-          <SettingsRow icon={Target} label="Change Recovery Key" description="Update your secret recovery key" onClick={() => setShowChangeRecoveryKey(true)} color="var(--accent)" />
           <SettingsRow icon={LogOut} label="Log Out" description={user?.email || "Disconnect from your account"} onClick={logout} color="var(--danger)" />
         </SettingsSection>
 
@@ -365,78 +339,6 @@ export default function SettingsScreen() {
           </form>
         </ModalSheet>
 
-        {/* Change Recovery Key Modal */}
-        <ModalSheet
-          isOpen={showChangeRecoveryKey}
-          onClose={() => {
-            setShowChangeRecoveryKey(false);
-            setRkError('');
-            setRkSuccess('');
-          }}
-          title="Change Recovery Key"
-        >
-          <form onSubmit={handleChangeRecoveryKey} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-              <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Confirm Current Password</div>
-              <input
-                type="password"
-                required
-                value={rkCurrentPassword}
-                onChange={(e) => setRkCurrentPassword(e.target.value)}
-                placeholder="••••••••"
-                style={{
-                  width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
-                  borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
-                  fontSize: 15, outline: 'none', boxSizing: 'border-box'
-                }}
-              />
-            </div>
-            <div>
-              <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>New Secret Recovery Key</div>
-              <input
-                type="text"
-                required
-                value={newRecoveryKey}
-                onChange={(e) => setNewRecoveryKey(e.target.value)}
-                placeholder="e.g. MyNewSecretWord123"
-                style={{
-                  width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
-                  borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
-                  fontSize: 15, outline: 'none', boxSizing: 'border-box'
-                }}
-              />
-              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.4 }}>
-                Make sure to save this somewhere safe. It is required to reset your password if you ever forget it.
-              </div>
-            </div>
-
-            {rkError && (
-              <div style={{ padding: 12, background: 'var(--danger-dim)', border: '1px solid rgba(216,92,99,0.2)', color: 'var(--danger)', borderRadius: 14, fontSize: 13, fontWeight: 600, textAlign: 'center' }}>
-                {rkError}
-              </div>
-            )}
-            {rkSuccess && (
-              <div style={{ padding: 12, background: 'var(--accent-dim)', border: '1px solid rgba(142,216,204,0.2)', color: 'var(--accent)', borderRadius: 14, fontSize: 13, fontWeight: 600, textAlign: 'center' }}>
-                {rkSuccess}
-              </div>
-            )}
-
-            <motion.button
-              whileTap={{ scale: 0.96 }}
-              type="submit"
-              disabled={rkLoading}
-              style={{
-                width: '100%', background: 'var(--accent)', color: '#07110F',
-                fontWeight: 800, borderRadius: 16, padding: '16px', fontSize: 16,
-                border: 'none', cursor: rkLoading ? 'not-allowed' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                opacity: rkLoading ? 0.7 : 1
-              }}
-            >
-              {rkLoading ? 'Updating...' : 'Update Recovery Key'}
-            </motion.button>
-          </form>
-        </ModalSheet>
       </div>
     </div>
   );

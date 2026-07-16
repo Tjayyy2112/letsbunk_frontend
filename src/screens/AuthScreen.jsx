@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, LogIn, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { useStore } from '../store/useStore';
@@ -6,40 +6,74 @@ import { useStore } from '../store/useStore';
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
   const [isForgot, setIsForgot] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
-  const [recoveryKey, setRecoveryKey] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   
-  const { login, register, forgotPassword, loading, error } = useStore();
+  const { login, register, sendOTP, resetPassword, loading, error } = useStore();
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     useStore.setState({ error: null });
     if (isForgot) {
-      if (newPassword !== confirmPassword) {
-        useStore.setState({ error: "New passwords do not match" });
-        return;
-      }
-      try {
-        await forgotPassword(email, recoveryKey, newPassword);
-        alert("Password reset successful! You can now log in.");
-        setIsForgot(false);
-        setIsLogin(true);
-        setPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-        setRecoveryKey('');
-      } catch (err) {
-        // Handled in store
+      if (!otpSent) {
+        // Step 1: Send OTP
+        try {
+          await sendOTP(email);
+          setOtpSent(true);
+          setResendCooldown(60);
+        } catch (err) {
+          // Handled in store
+        }
+      } else {
+        // Step 2: Reset Password
+        if (newPassword !== confirmPassword) {
+          useStore.setState({ error: "New passwords do not match" });
+          return;
+        }
+        try {
+          await resetPassword(email, otp, newPassword);
+          alert("Password reset successful! You can now log in.");
+          setIsForgot(false);
+          setOtpSent(false);
+          setIsLogin(true);
+          setPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setOtp('');
+        } catch (err) {
+          // Handled in store
+        }
       }
     } else if (isLogin) {
       await login(email, password);
     } else {
-      await register(email, password, name, recoveryKey);
+      await register(email, password, name);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (resendCooldown > 0) return;
+    useStore.setState({ error: null });
+    try {
+      await sendOTP(email);
+      setResendCooldown(60);
+      alert("Verification code resent successfully!");
+    } catch (err) {
+      // Handled in store
     }
   };
 
@@ -105,7 +139,9 @@ export default function AuthScreen() {
           fontSize: 14, marginBottom: 32, fontWeight: 500
         }}>
           {isForgot 
-            ? 'Reset your password using your recovery key.' 
+            ? otpSent
+              ? 'Enter the 6-digit code sent to your email and your new password.'
+              : 'Enter your email to receive a password reset code.'
             : isLogin 
               ? 'Welcome back, ready to bunk?' 
               : 'Create your account to start tracking.'}
@@ -202,18 +238,31 @@ export default function AuthScreen() {
             </div>
           )}
 
-          {/* Recovery Key input field (shown on Sign Up or Forgot Password) */}
-          {(isForgot || (!isLogin && !isForgot)) && (
+          {/* OTP Code input field (shown on Forgot Password Step 2) */}
+          {isForgot && otpSent && (
             <div>
-              <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
-                {isForgot ? 'Secret Recovery Key' : 'Create Secret Recovery Key'}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Verification Code (OTP)</span>
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={resendCooldown > 0}
+                  style={{
+                    background: 'none', border: 'none',
+                    color: resendCooldown > 0 ? 'var(--text-muted)' : 'var(--accent)',
+                    fontSize: 12, fontWeight: 600, cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer', padding: 0
+                  }}
+                >
+                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
+                </button>
               </div>
               <input
                 type="text"
                 required
-                value={recoveryKey}
-                onChange={(e) => setRecoveryKey(e.target.value)}
-                placeholder="e.g. MySecretWord123"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                placeholder="6-digit code"
+                maxLength={6}
                 style={{
                   width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
                   borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
@@ -223,16 +272,11 @@ export default function AuthScreen() {
                 onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
                 onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
               />
-              {!isForgot && (
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.4 }}>
-                  This key is required to reset your password if you ever forget it. Keep it safe!
-                </div>
-              )}
             </div>
           )}
 
-          {/* New Password & Confirm Password for Forgot Password view */}
-          {isForgot && (
+          {/* New Password & Confirm Password for Forgot Password Step 2 */}
+          {isForgot && otpSent && (
             <>
               <div>
                 <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>New Password</div>
@@ -312,7 +356,7 @@ export default function AuthScreen() {
                 }}
               />
             ) : isForgot ? (
-              'Reset Password'
+              otpSent ? 'Reset Password' : 'Send Verification Code'
             ) : isLogin ? (
               <><LogIn size={20} strokeWidth={2.5} /> Login</>
             ) : (
@@ -325,7 +369,7 @@ export default function AuthScreen() {
           {isForgot ? (
             <button
               type="button"
-              onClick={() => { setIsForgot(false); setIsLogin(true); useStore.setState({ error: null }); }}
+              onClick={() => { setIsForgot(false); setOtpSent(false); setIsLogin(true); useStore.setState({ error: null }); }}
               style={{
                 background: 'transparent', border: 'none', color: 'var(--accent)',
                 fontSize: 14, fontWeight: 600, cursor: 'pointer', padding: '8px 16px',

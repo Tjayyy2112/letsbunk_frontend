@@ -29,9 +29,9 @@ api.interceptors.response.use(
 // ── Auth ──────────────────────────────────────────────
 export const loginUser      = (data) => api.post('/auth/login', data).then(r => r.data);
 export const registerUser   = (data) => api.post('/auth/register', data).then(r => r.data);
-export const forgotPassword   = (data) => api.post('/auth/forgot-password', data).then(r => r.data);
-export const changePassword   = (data) => api.put('/auth/change-password', data).then(r => r.data);
-export const changeRecoveryKey = (data) => api.put('/auth/change-recovery-key', data).then(r => r.data);
+export const sendOTP        = (data) => api.post('/auth/send-otp', data).then(r => r.data);
+export const resetPassword  = (data) => api.post('/auth/reset-password', data).then(r => r.data);
+export const changePassword  = (data) => api.put('/auth/change-password', data).then(r => r.data);
 
 // ── Subjects ──────────────────────────────────────────
 export const getSubjects    = ()        => api.get('/subjects').then(r => r.data);

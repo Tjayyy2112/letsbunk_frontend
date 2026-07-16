@@ -39,10 +39,10 @@ export const useStore = create((set, get) => ({
     }
   },
 
-  register: async (email, password, name, recoveryKey) => {
+  register: async (email, password, name) => {
     set({ loading: true, error: null });
     try {
-      const data = await api.registerUser({ email, password, name, recoveryKey });
+      const data = await api.registerUser({ email, password, name });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       set({ token: data.token, user: data.user, error: null });
@@ -53,10 +53,22 @@ export const useStore = create((set, get) => ({
     }
   },
 
-  forgotPassword: async (email, recoveryKey, newPassword) => {
+  sendOTP: async (email) => {
     set({ loading: true, error: null });
     try {
-      const res = await api.forgotPassword({ email, recoveryKey, newPassword });
+      const res = await api.sendOTP({ email });
+      set({ loading: false, error: null });
+      return res;
+    } catch (err) {
+      set({ error: err.response?.data?.error || err.message, loading: false });
+      throw err;
+    }
+  },
+
+  resetPassword: async (email, otp, newPassword) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await api.resetPassword({ email, otp, newPassword });
       set({ loading: false, error: null });
       return res;
     } catch (err) {
@@ -68,14 +80,6 @@ export const useStore = create((set, get) => ({
   changePassword: async (currentPassword, newPassword) => {
     try {
       return await api.changePassword({ currentPassword, newPassword });
-    } catch (err) {
-      throw new Error(err.response?.data?.error || err.message);
-    }
-  },
-
-  changeRecoveryKey: async (currentPassword, recoveryKey) => {
-    try {
-      return await api.changeRecoveryKey({ currentPassword, recoveryKey });
     } catch (err) {
       throw new Error(err.response?.data?.error || err.message);
     }
