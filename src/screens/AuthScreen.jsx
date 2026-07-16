@@ -5,19 +5,41 @@ import { useStore } from '../store/useStore';
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgot, setIsForgot] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [recoveryKey, setRecoveryKey] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   
-  const { login, register, loading, error } = useStore();
+  const { login, register, forgotPassword, loading, error } = useStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLogin) {
+    useStore.setState({ error: null });
+    if (isForgot) {
+      if (newPassword !== confirmPassword) {
+        useStore.setState({ error: "New passwords do not match" });
+        return;
+      }
+      try {
+        await forgotPassword(email, recoveryKey, newPassword);
+        alert("Password reset successful! You can now log in.");
+        setIsForgot(false);
+        setIsLogin(true);
+        setPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setRecoveryKey('');
+      } catch (err) {
+        // Handled in store
+      }
+    } else if (isLogin) {
       await login(email, password);
     } else {
-      await register(email, password, name);
+      await register(email, password, name, recoveryKey);
     }
   };
 
@@ -82,12 +104,16 @@ export default function AuthScreen() {
           textAlign: 'center', color: 'var(--text-secondary)',
           fontSize: 14, marginBottom: 32, fontWeight: 500
         }}>
-          {isLogin ? 'Welcome back, ready to bunk?' : 'Create your account to start tracking.'}
+          {isForgot 
+            ? 'Reset your password using your recovery key.' 
+            : isLogin 
+              ? 'Welcome back, ready to bunk?' 
+              : 'Create your account to start tracking.'}
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <AnimatePresence mode="popLayout">
-            {!isLogin && (
+            {!isLogin && !isForgot && (
               <motion.div
                 initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
                 animate={{ opacity: 1, height: 'auto', overflow: 'visible' }}
@@ -131,37 +157,122 @@ export default function AuthScreen() {
             />
           </div>
 
-          <div>
-            <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Password</div>
-            <div style={{ position: 'relative' }}>
+          {!isForgot && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Password</span>
+                {isLogin && (
+                  <button
+                    type="button"
+                    onClick={() => { setIsForgot(true); setIsLogin(false); useStore.setState({ error: null }); }}
+                    style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                  >
+                    Forgot Password?
+                  </button>
+                )}
+              </div>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  style={{
+                    width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                    borderRadius: 16, padding: '14px 44px 14px 16px', color: 'var(--text-primary)',
+                    fontSize: 15, outline: 'none', transition: 'border-color 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', color: 'var(--text-secondary)',
+                    cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Recovery Key input field (shown on Sign Up or Forgot Password) */}
+          {(isForgot || (!isLogin && !isForgot)) && (
+            <div>
+              <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {isForgot ? 'Secret Recovery Key' : 'Create Secret Recovery Key'}
+              </div>
               <input
-                type={showPassword ? "text" : "password"}
+                type="text"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                value={recoveryKey}
+                onChange={(e) => setRecoveryKey(e.target.value)}
+                placeholder="e.g. MySecretWord123"
                 style={{
                   width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
-                  borderRadius: 16, padding: '14px 44px 14px 16px', color: 'var(--text-primary)',
+                  borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
                   fontSize: 15, outline: 'none', transition: 'border-color 0.2s',
                   boxSizing: 'border-box'
                 }}
                 onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
                 onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', color: 'var(--text-secondary)',
-                  cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+              {!isForgot && (
+                <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4, lineHeight: 1.4 }}>
+                  This key is required to reset your password if you ever forget it. Keep it safe!
+                </div>
+              )}
             </div>
-          </div>
+          )}
+
+          {/* New Password & Confirm Password for Forgot Password view */}
+          {isForgot && (
+            <>
+              <div>
+                <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>New Password</div>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  style={{
+                    width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                    borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
+                    fontSize: 15, outline: 'none', transition: 'border-color 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+                />
+              </div>
+
+              <div>
+                <div style={{ marginBottom: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Confirm New Password</div>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  style={{
+                    width: '100%', background: 'var(--bg)', border: '1px solid var(--border)',
+                    borderRadius: 16, padding: '14px 16px', color: 'var(--text-primary)',
+                    fontSize: 15, outline: 'none', transition: 'border-color 0.2s',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--border)'}
+                />
+              </div>
+            </>
+          )}
 
           <AnimatePresence>
             {error && (
@@ -200,6 +311,8 @@ export default function AuthScreen() {
                   border: '2px solid rgba(7,17,15,0.2)', borderTop: '2px solid #07110F'
                 }}
               />
+            ) : isForgot ? (
+              'Reset Password'
             ) : isLogin ? (
               <><LogIn size={20} strokeWidth={2.5} /> Login</>
             ) : (
@@ -209,19 +322,35 @@ export default function AuthScreen() {
         </form>
 
         <div style={{ marginTop: 24, textAlign: 'center' }}>
-          <button
-            type="button"
-            onClick={() => { setIsLogin(!isLogin); useStore.setState({ error: null }); }}
-            style={{
-              background: 'transparent', border: 'none', color: 'var(--accent)',
-              fontSize: 14, fontWeight: 600, cursor: 'pointer', padding: '8px 16px',
-              borderRadius: 12
-            }}
-            onMouseOver={(e) => e.target.style.background = 'var(--accent-dim)'}
-            onMouseOut={(e) => e.target.style.background = 'transparent'}
-          >
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
-          </button>
+          {isForgot ? (
+            <button
+              type="button"
+              onClick={() => { setIsForgot(false); setIsLogin(true); useStore.setState({ error: null }); }}
+              style={{
+                background: 'transparent', border: 'none', color: 'var(--accent)',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer', padding: '8px 16px',
+                borderRadius: 12
+              }}
+              onMouseOver={(e) => e.target.style.background = 'var(--accent-dim)'}
+              onMouseOut={(e) => e.target.style.background = 'transparent'}
+            >
+              Back to Login
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setIsLogin(!isLogin); useStore.setState({ error: null }); }}
+              style={{
+                background: 'transparent', border: 'none', color: 'var(--accent)',
+                fontSize: 14, fontWeight: 600, cursor: 'pointer', padding: '8px 16px',
+                borderRadius: 12
+              }}
+              onMouseOver={(e) => e.target.style.background = 'var(--accent-dim)'}
+              onMouseOut={(e) => e.target.style.background = 'transparent'}
+            >
+              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
+            </button>
+          )}
         </div>
       </motion.div>
     </div>
